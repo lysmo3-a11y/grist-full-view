@@ -103,9 +103,10 @@ a{color:var(--teal)}
       <button class="sec" id="prev">‹</button><h3 id="mt"></h3><button class="sec" id="next">›</button>
       <button class="sec" id="today">Today</button>
       <div class="seg"><button class="sec on" data-v="month">Month</button><button class="sec" data-v="line">Timeline</button></div>
+      <select id="m-cat" aria-label="Filter by category"></select>
+      <select id="m-eq" aria-label="Filter by machine"></select>
       <select id="m-eq" aria-label="Filter by machine"></select>
     </div>
-    <div class="tools" id="chips"></div>
     <div id="detail"></div>
     <div id="cal"></div>
   </section>
@@ -197,18 +198,20 @@ $('#eqtable').onchange=async e=>{const t=e.target;if(!t.dataset.f||!EDITABLE.inc
   await grist.docApi.applyUserActions([['UpdateRecord','Equipment',+t.dataset.e,{[t.dataset.f]:t.value}]]);load()};
 
 /* ---------- Booking ---------- */
-function eqOptions(){
-  const bk=D.Equipment.filter(e=>e.Bookable).sort((a,b)=>(a.NameID||'').localeCompare(b.NameID||''));
+function eqOptions(cat){
+  const bk=D.Equipment.filter(e=>e.Bookable&&(!cat||e.Category==cat)).sort((a,b)=>(a.NameID||'').localeCompare(b.NameID||''));
   const g={};bk.forEach(e=>(g[e.Category]=g[e.Category]||[]).push(e));
   return Object.keys(g).sort((a,b)=>(D.byCat[a]?.Name||'').localeCompare(D.byCat[b]?.Name||'')).map(c=>`<optgroup label="${esc(D.byCat[c]?.Name)}">`+g[c].map(e=>`<option value="${e.id}">${esc(nm(e))}</option>`).join('')+'</optgroup>').join('');
 }
 function fill(sel,html){const v=sel.value;sel.innerHTML=html;if([...sel.options].some(o=>o.value===v))sel.value=v}
 function rBk(){
-  const o=eqOptions();
-  fill($('#f-eq'),'<option value="">Choose a machine…</option>'+o);
-  fill($('#m-eq'),'<option value="">All machines</option>'+o);S.mach=$('#m-eq').value;
+  const cs=D.Category.slice().sort((a,b)=>(a.Name||'').localeCompare(b.Name||''));
+  fill($('#m-cat'),'<option value="">All categories</option>'+cs.map(c=>`<option value="${c.id}">${esc(c.Name)}</option>`).join(''));
+  const cat=$('#m-cat').value;
+  S.cats=cat?new Set([+cat]):new Set();
+  fill($('#f-eq'),'<option value="">Choose a machine…</option>'+eqOptions());
+  fill($('#m-eq'),'<option value="">All machines</option>'+eqOptions(cat));S.mach=$('#m-eq').value;
   if(!$('#f-sd').value){$('#f-sd').value=$('#f-ed').value=dstr(todayS())}
-  $('#chips').innerHTML=D.Category.map(c=>`<button class="chip ${S.cats.has(c.id)?'on':''}" data-c="${c.id}">${esc(c.Name)}</button>`).join('');
   chk();rCalendar();
 }
 function chk(){
@@ -289,7 +292,7 @@ $('#cal').onclick=e=>{
 $('#detail').onclick=async e=>{const t=e.target;if(t.id!=='cx')return;
   if(!t.dataset.s){t.dataset.s=1;t.textContent='Click again to confirm';return}
   await grist.docApi.applyUserActions([['RemoveRecord','Bookings',S.sel]]);S.sel=null;load()};
-$('#chips').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;const c=+b.dataset.c;S.cats.has(c)?S.cats.delete(c):S.cats.add(c);rBk()};
+$('#m-cat').onchange=()=>{S.mach='';$('#m-eq').value='';rBk()};
 $('#m-eq').onchange=e=>{S.mach=e.target.value;rCalendar()};
 $('#prev').onclick=()=>{const d=new Date(Date.UTC(S.y,S.mo-1,1));S.y=d.getUTCFullYear();S.mo=d.getUTCMonth();rCalendar()};
 $('#next').onclick=()=>{const d=new Date(Date.UTC(S.y,S.mo+1,1));S.y=d.getUTCFullYear();S.mo=d.getUTCMonth();rCalendar()};
