@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lab equipment</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+<style>
+/* Colors: edit here to match the institute's charter exactly */
+:root{--navy:#0b2447;--teal:#00a6b2;--tealbg:#e3f5f6;--bg:#f4f6f9;--line:#d9e0ea;--txt:#1b2733;--mute:#6a7a8c;--red:#c62f3a;--orange:#e08a1e;--green:#2e9c63}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.4 Figtree,system-ui,sans-serif;color:var(--txt);background:var(--bg)}
+header{background:var(--navy);color:#fff;display:flex;align-items:center;gap:28px;padding:0 16px;height:48px}
+header h1{font-size:15px;font-weight:600;margin:0;white-space:nowrap}
+nav{display:flex;height:100%;flex:1}
+nav button{background:none;border:0;border-bottom:3px solid transparent;color:#b8c7e0;padding:0 18px;font:inherit;font-weight:500;cursor:pointer}
+nav button.on{color:#fff;border-color:var(--teal)}
+.me{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#b8c7e0}
+.me input{width:210px;margin:0;padding:5px 8px}
+#err{background:#fde8ea;color:var(--red);padding:8px 16px;display:none}
+.tab{display:none;height:calc(100vh - 48px)}.tab.on{display:flex}
+.pane{flex:1;overflow:auto;padding:16px;min-width:0}
+aside{width:240px;flex:none;background:#fff;border-right:1px solid var(--line);overflow:auto;padding:12px}
+aside h2{font-size:15px;margin:4px 0 12px;color:var(--navy)}
+.cat{display:flex;justify-content:space-between;width:100%;padding:8px 10px;border:0;background:none;text-align:left;font:inherit;border-radius:6px;cursor:pointer}
+.cat:hover{background:var(--bg)}.cat.on{background:var(--tealbg);color:var(--navy);font-weight:600}.cat small{color:var(--mute)}
+label{display:block;font-size:12.5px;color:var(--mute);margin-bottom:10px}
+input,select,textarea{width:100%;margin-top:3px;padding:7px 8px;border:1px solid var(--line);border-radius:6px;font:inherit;color:var(--txt);background:#fff}
+textarea{min-width:200px;resize:vertical}
+:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.row{display:flex;gap:8px}.row label:first-child{flex:1}.row label+label{width:76px}
+.hint{font-size:12px;color:var(--mute);margin:-2px 0 10px}
+button.pri,button.dng,button.sec{border:0;border-radius:6px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+button.pri{background:var(--teal);color:#fff;width:100%}button.pri:disabled{background:#b9c6d3;cursor:not-allowed}
+button.dng{background:var(--red);color:#fff}
+button.sec{background:#fff;border:1px solid var(--line);color:var(--navy);padding:6px 12px}
+#f-msg{padding:8px 10px;border-radius:6px;margin-bottom:10px;font-size:13px}
+.m-w{background:#f1f4f8;color:var(--mute)}.m-b{background:#fde8ea;color:var(--red)}.m-g{background:#e4f5ec;color:var(--green)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.tools input,.tools select{width:auto;margin:0}
+.tools h3{margin:0 8px;min-width:150px;text-align:center;font-size:16px;color:var(--navy)}
+.seg{display:flex}.seg button{border-radius:0}.seg button:first-child{border-radius:6px 0 0 6px}.seg button:last-child{border-radius:0 6px 6px 0}
+.seg button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chip{border:1px solid var(--line);background:#fff;border-radius:14px;padding:3px 11px;font:inherit;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+table.t{border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--line)}
+.t th{position:sticky;top:-16px;background:#eef2f7;text-align:left;padding:8px 10px;font-weight:600;border-bottom:1px solid var(--line);white-space:nowrap}
+.t td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.t tr:hover td{background:#fafcfd}
+a{color:var(--teal)}
+.empty{padding:32px;text-align:center;color:var(--mute)}
+.mg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.dh{background:#eef2f7;padding:6px 8px;font-weight:600}
+.dc{background:#fff;min-height:96px;padding:4px;cursor:pointer}.dc.out{background:#f7f9fb;color:#aab5c2}
+.dc.today>b{background:var(--teal);color:#fff;border-radius:10px;padding:1px 7px}
+.bar{display:block;width:100%;text-align:left;border:0;border-left:4px solid var(--c);background:color-mix(in srgb,var(--c) 14%,#fff);margin-top:3px;padding:2px 6px;font:inherit;font-size:12px;border-radius:3px;cursor:pointer;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar.bad{outline:2px solid var(--red);background:#fde8ea}.bar.sel{box-shadow:0 0 0 2px var(--navy)}
+.tl{background:#fff;border:1px solid var(--line);min-width:calc(180px + var(--n)*30px)}
+.tr{display:flex;border-bottom:1px solid var(--line)}
+.lab{width:180px;flex:none;padding:5px 8px;font-size:12.5px;position:sticky;left:0;background:#fff;z-index:2;border-right:1px solid var(--line);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trk{flex:1;position:relative;height:30px;background:repeating-linear-gradient(to right,transparent 0,transparent calc(100%/var(--n) - 1px),var(--line) calc(100%/var(--n) - 1px),var(--line) calc(100%/var(--n)))}
+.trk .bar{position:absolute;top:4px;height:22px;margin:0;width:auto}
+.tr.hd{background:#eef2f7;font-weight:600}.tr.hd .lab{background:#eef2f7}
+.tr.hd .trk{display:grid;grid-template-columns:repeat(var(--n),1fr);height:auto;background:none}
+.tr.hd .trk div{text-align:center;padding:5px 0;font-size:12px}.tr.hd .trk .today{color:var(--teal)}
+#detail{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:12px}#detail:empty{display:none}
+#detail>div{background:#fff;border:1px solid var(--line);border-left:4px solid var(--navy);padding:8px 12px;border-radius:6px}
+.badtxt{color:var(--red);font-weight:600}.mute{color:var(--mute)}
+.pill{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer;text-align:left}
+.pill b{display:block;font-size:20px;color:var(--navy)}.pill.on{border-color:var(--teal);background:var(--tealbg)}
+@media(max-width:800px){aside{width:190px}}
+</style></head>
+<body>
+<header>
+  <h1>Lab equipment</h1>
+  <nav><button data-t="eq" class="on">Equipment</button><button data-t="bk">Booking</button><button data-t="cal">Calibration</button></nav>
+  <div class="me"><span>Your email</span><input id="me" type="email" placeholder="name@espci.fr"></div>
+</header>
+<div id="err"></div>
+
+<div class="tab on" id="t-eq">
+  <aside><h2>Categories</h2><div id="cats"></div></aside>
+  <section class="pane">
+    <div class="tools"><input id="q" type="search" placeholder="Search this category" style="width:260px"><span class="mute" id="eqn"></span></div>
+    <div id="eqtable"></div>
+  </section>
+</div>
+
+<div class="tab" id="t-bk">
+  <aside>
+    <h2>New booking</h2>
+    <label>Machine<select id="f-eq"></select></label>
+    <div class="row"><label>From<input type="date" id="f-sd"></label><label>&nbsp;<select id="f-sh"><option>AM</option><option>PM</option></select></label></div>
+    <div class="row"><label>To<input type="date" id="f-ed"></label><label>&nbsp;<select id="f-eh"><option>AM</option><option selected>PM</option></select></label></div>
+    <p class="hint">AM = morning, PM = afternoon. Tip: click a day in the calendar to fill the dates.</p>
+    <label>Used where<input id="f-w" placeholder="Room, experiment…"></label>
+    <div id="f-msg" class="m-w"></div>
+    <button class="pri" id="f-go" disabled>Book</button>
+  </aside>
+  <section class="pane">
+    <div class="tools">
+      <button class="sec" id="prev">‹</button><h3 id="mt"></h3><button class="sec" id="next">›</button>
+      <button class="sec" id="today">Today</button>
+      <div class="seg"><button class="sec on" data-v="month">Month</button><button class="sec" data-v="line">Timeline</button></div>
+      <select id="m-eq" aria-label="Filter by machine"></select>
+    </div>
+    <div class="tools" id="chips"></div>
+    <div id="detail"></div>
+    <div id="cal"></div>
+  </section>
+</div>
+
+<div class="tab" id="t-cal"><section class="pane">
+  <div class="tools" id="pills"></div>
+  <div id="caltable"></div>
+</section></div>
+
+<script>
+const EDITABLE=['Comments'];   // fields users may edit in the Equipment tab
+const DUE_SOON=90;             // days before expiry to show "due soon"
+const ALWAYS=['NameID','Description','Status','Comments'];
+const COLS=['NameID','Description','Sub_Type','Serial_Number','Location','Owner','Quantity','Status','Bookable','UTA','Number_Channels','Number_Elements','Center_Frequency_MHz','Frequency_Range','Bandwidth','Max_Driving_Voltage_V','HIFU','SWE_Compatible','Soldered','Geometry','Active_Area_um','Min_Flow','Max_Flow','Nozzle_Size','Bed_Type','Build_Volume','Filament_Diameter','Calibration_Status','Doc_Link','Gitlab_Link','Comments'];
+const PAL=['#19376d','#00a6b2','#7a5af8','#e08a1e','#2e9c63','#d6457a','#5b7083','#a15c2b'];
+const DAY=86400,$=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const todayS=()=>{const n=new Date();return Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/1000};
+const dstr=s=>s==null||s===''?'':new Date(s*1000).toISOString().slice(0,10);
+const sec=x=>x?Date.parse(x+'T00:00:00Z')/1000:null;
+const slot=(d,h)=>Math.floor(d/DAY)*2+(h==='PM'?1:0);
+const arr=v=>Array.isArray(v)?(v[0]==='L'?v.slice(1):v):v;
+const has=v=>{v=arr(v);return !(v==null||v===''||v===false||v===0||(Array.isArray(v)&&!v.length))};
+const rows=t=>{const k=Object.keys(t),n=(t.id||[]).length;return Array.from({length:n},(_,i)=>{const r={};k.forEach(c=>r[c]=t[c][i]);return r})};
+const idx=a=>Object.fromEntries(a.map(r=>[r.id,r]));
+const nm=e=>e?`${e.NameID} – ${e.Description||''}`:'(deleted machine)';
+const now=new Date();
+const S={tab:'eq',cat:null,q:'',view:'month',y:now.getFullYear(),mo:now.getMonth(),cats:new Set(),mach:'',cal:'all',sel:null,me:''};
+try{S.me=localStorage.getItem('me')||''}catch(e){}
+let D={};
+
+async function load(){
+  try{
+    const N=['Equipment','Category','Location','Sub_Type','Bookings','Calibrations'];
+    const ts=await Promise.all(N.map(n=>grist.docApi.fetchTable(n)));
+    N.forEach((n,i)=>D[n]=rows(ts[i]));
+    D.byCat=idx(D.Category);D.byEq=idx(D.Equipment);D.byLoc=idx(D.Location);D.bySub=idx(D.Sub_Type);
+    D.Bookings.forEach(b=>{b.ss=b.Start_Date?slot(b.Start_Date,b.Start_Half):null;b.es=b.End_Date?slot(b.End_Date,b.End_Half):null});
+    D.Bookings.forEach(b=>b.bad=b.ss!=null&&b.es!=null&&clash(b.Equipment,b.ss,b.es,b.id).length>0);
+    $('#err').style.display='none';render();
+  }catch(e){const x=$('#err');x.style.display='block';x.textContent='Could not read the tables ('+e.message+'). Check that the widget has full access and that table names match.'}
+}
+function clash(eq,s,e,ign){return D.Bookings.filter(o=>o.id!==ign&&o.Equipment===eq&&o.ss!=null&&o.es!=null&&s<=o.es&&o.ss<=e)}
+function cal(e){
+  if(!e.Needs_Calibration)return{k:'na',label:''};
+  const l=D.Calibrations.filter(c=>c.Equipment===e.id&&c.Calibration_Date).sort((a,b)=>b.Calibration_Date-a.Calibration_Date)[0];
+  if(!l||!l.Valid_Until)return{k:'never',label:'⚫ Never calibrated',l};
+  const d=Math.round((l.Valid_Until-todayS())/DAY);
+  if(d<0)return{k:'exp',label:'🔴 Expired',d,l};
+  if(d<=DUE_SOON)return{k:'soon',label:`🟠 Due in ${d} days`,d,l};
+  return{k:'ok',label:'🟢 Valid',d,l};
+}
+
+function render(){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===S.tab));
+  ['eq','bk','cal'].forEach(t=>$('#t-'+t).classList.toggle('on',t===S.tab));
+  if(S.tab==='eq')rEq();else if(S.tab==='bk')rBk();else rCal();
+}
+
+/* ---------- Equipment ---------- */
+function rEq(){
+  const cs=D.Category.slice().sort((a,b)=>(a.Name||'').localeCompare(b.Name||''));
+  if(S.cat==null||!D.byCat[S.cat])S.cat=cs.length?cs[0].id:null;
+  $('#cats').innerHTML=cs.map(c=>`<button class="cat ${c.id===S.cat?'on':''}" data-c="${c.id}">${esc(c.Name)}<small>${D.Equipment.filter(e=>e.Category===c.id).length}</small></button>`).join('');
+  const q=S.q.toLowerCase();
+  const all=D.Equipment.filter(e=>e.Category===S.cat).sort((a,b)=>(a.NameID||'').localeCompare(b.NameID||''));
+  const list=all.filter(e=>!q||[e.NameID,e.Description,e.Serial_Number,e.Comments].join(' ').toLowerCase().includes(q));
+  $('#eqn').textContent=`${list.length} item${list.length===1?'':'s'}`;
+  if(!list.length){$('#eqtable').innerHTML='<div class="empty">No equipment found in this category.</div>';return}
+  const cols=COLS.filter(c=>ALWAYS.includes(c)||(c==='Calibration_Status'?all.some(e=>e.Needs_Calibration):all.some(e=>has(e[c]))));
+  $('#eqtable').innerHTML='<table class="t"><thead><tr>'+cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')+'</tr></thead><tbody>'+
+    list.map(e=>'<tr>'+cols.map(c=>`<td>${eqCell(c,e)}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+}
+function eqCell(c,e){
+  const v=arr(e[c]);
+  if(EDITABLE.includes(c))return `<textarea rows="1" data-e="${e.id}" data-f="${c}" aria-label="${c}">${esc(v)}</textarea>`;
+  if(c==='Location')return esc(D.byLoc[v]?.Name);
+  if(c==='Sub_Type')return esc(D.bySub[v]?.Name);
+  if(c==='Calibration_Status')return esc(cal(e).label);
+  if(typeof v==='boolean')return v?'✓':'';
+  if(Array.isArray(v))return esc(v.join(', '));
+  if(/Link$/.test(c)&&/^https?:/.test(v||''))return `<a href="${esc(v)}" target="_blank" rel="noopener">open</a>`;
+  return esc(v);
+}
+$('#cats').onclick=e=>{const b=e.target.closest('[data-c]');if(b){S.cat=+b.dataset.c;rEq()}};
+$('#q').oninput=e=>{S.q=e.target.value;rEq()};
+$('#eqtable').onchange=async e=>{const t=e.target;if(!t.dataset.f||!EDITABLE.includes(t.dataset.f))return;
+  await grist.docApi.applyUserActions([['UpdateRecord','Equipment',+t.dataset.e,{[t.dataset.f]:t.value}]]);load()};
+
+/* ---------- Booking ---------- */
+function eqOptions(){
+  const bk=D.Equipment.filter(e=>e.Bookable).sort((a,b)=>(a.NameID||'').localeCompare(b.NameID||''));
+  const g={};bk.forEach(e=>(g[e.Category]=g[e.Category]||[]).push(e));
+  return Object.keys(g).sort((a,b)=>(D.byCat[a]?.Name||'').localeCompare(D.byCat[b]?.Name||'')).map(c=>`<optgroup label="${esc(D.byCat[c]?.Name)}">`+g[c].map(e=>`<option value="${e.id}">${esc(nm(e))}</option>`).join('')+'</optgroup>').join('');
+}
+function fill(sel,html){const v=sel.value;sel.innerHTML=html;if([...sel.options].some(o=>o.value===v))sel.value=v}
+function rBk(){
+  const o=eqOptions();
+  fill($('#f-eq'),'<option value="">Choose a machine…</option>'+o);
+  fill($('#m-eq'),'<option value="">All machines</option>'+o);S.mach=$('#m-eq').value;
+  if(!$('#f-sd').value){$('#f-sd').value=$('#f-ed').value=dstr(todayS())}
+  $('#chips').innerHTML=D.Category.map(c=>`<button class="chip ${S.cats.has(c.id)?'on':''}" data-c="${c.id}">${esc(c.Name)}</button>`).join('');
+  chk();rCalendar();
+}
+function chk(){
+  const eq=+$('#f-eq').value,sd=sec($('#f-sd').value),ed=sec($('#f-ed').value);
+  let m,ok=false;
+  if(!S.me)m=['w','Enter your email (top right) to book.'];
+  else if(!eq||sd==null||ed==null)m=['w','Pick a machine and dates.'];
+  else{
+    const s=slot(sd,$('#f-sh').value),e=slot(ed,$('#f-eh').value);
+    if(e<s)m=['b','⚠ The end is before the start.'];
+    else{const c=clash(eq,s,e);
+      if(c.length)m=['b','⚠ Already booked by '+c.map(o=>`${o.Booked_By} (${dstr(o.Start_Date)} ${o.Start_Half} to ${dstr(o.End_Date)} ${o.End_Half})`).join(', ')];
+      else{m=['g','✓ Available'];ok=true}}
+  }
+  $('#f-msg').className='m-'+m[0];$('#f-msg').textContent=m[1];$('#f-go').disabled=!ok;return ok;
+}
+['f-eq','f-sd','f-sh','f-ed','f-eh'].forEach(i=>$('#'+i).addEventListener('input',chk));
+$('#f-go').onclick=async()=>{
+  await load();if(!chk())return;
+  const sd=sec($('#f-sd').value);
+  await grist.docApi.applyUserActions([['AddRecord','Bookings',null,{Equipment:+$('#f-eq').value,Start_Date:sd,Start_Half:$('#f-sh').value,End_Date:sec($('#f-ed').value),End_Half:$('#f-eh').value,Used_Where:$('#f-w').value,Booked_By:S.me}]]);
+  const d=new Date(sd*1000);S.y=d.getUTCFullYear();S.mo=d.getUTCMonth();$('#f-w').value='';await load();
+  $('#f-msg').className='m-g';$('#f-msg').textContent='✓ Booking saved';
+};
+function inFilter(b){const e=D.byEq[b.Equipment];return e&&(!S.cats.size||S.cats.has(e.Category))&&(!S.mach||b.Equipment==S.mach)}
+const col=b=>PAL[(D.byEq[b.Equipment]?.Category||0)%PAL.length];
+const who=b=>String(b.Booked_By||'?').split('@')[0];
+function bar(b,extra=''){
+  const e=D.byEq[b.Equipment];
+  return `<button class="bar ${b.bad?'bad':''} ${S.sel===b.id?'sel':''}" data-b="${b.id}" ${extra} style="--c:${col(b)};${extra&&''}" title="${esc(nm(e))}: ${dstr(b.Start_Date)} ${b.Start_Half} to ${dstr(b.End_Date)} ${b.End_Half}, ${esc(b.Booked_By)}">${esc(e.NameID)} ${esc(who(b))}</button>`;
+}
+function rCalendar(){
+  const t=new Date(Date.UTC(S.y,S.mo,1));
+  $('#mt').textContent=t.toLocaleString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'});
+  document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+  const bs=D.Bookings.filter(b=>b.Start_Date&&b.End_Date&&inFilter(b));
+  $('#cal').innerHTML=S.view==='month'?month(bs):line(bs);
+  rDetail();
+}
+function month(bs){
+  const off=(new Date(Date.UTC(S.y,S.mo,1)).getUTCDay()+6)%7,dim=new Date(Date.UTC(S.y,S.mo+1,0)).getUTCDate(),n=Math.ceil((off+dim)/7)*7,t=todayS();
+  let h='<div class="mg">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="dh">${d}</div>`).join('');
+  for(let i=0;i<n;i++){
+    const d=i-off+1,ds=Date.UTC(S.y,S.mo,d)/1000,out=d<1||d>dim;
+    h+=`<div class="dc ${out?'out':''} ${ds===t?'today':''}" data-d="${dstr(ds)}"><b>${new Date(ds*1000).getUTCDate()}</b>`+bs.filter(b=>b.Start_Date<=ds&&ds<=b.End_Date).map(b=>bar(b)).join('')+'</div>';
+  }
+  return h+'</div>';
+}
+function line(bs){
+  const dim=new Date(Date.UTC(S.y,S.mo+1,0)).getUTCDate(),m0=Date.UTC(S.y,S.mo,1)/1000/DAY*2,m1=m0+dim*2,t=todayS();
+  const es=D.Equipment.filter(e=>e.Bookable&&(!S.cats.size||S.cats.has(e.Category))&&(!S.mach||e.id==S.mach))
+    .sort((a,b)=>(D.byCat[a.Category]?.Name||'').localeCompare(D.byCat[b.Category]?.Name||'')||(a.NameID||'').localeCompare(b.NameID||''));
+  if(!es.length)return '<div class="empty">No bookable machine matches the filters.</div>';
+  let h=`<div class="tl" style="--n:${dim}"><div class="tr hd"><div class="lab">Machine</div><div class="trk">`+
+    Array.from({length:dim},(_,i)=>`<div class="${Date.UTC(S.y,S.mo,i+1)/1000===t?'today':''}">${i+1}</div>`).join('')+'</div></div>';
+  es.forEach(e=>{
+    h+=`<div class="tr"><div class="lab" title="${esc(nm(e))}">${esc(nm(e))}</div><div class="trk">`;
+    bs.filter(b=>b.Equipment===e.id).forEach(b=>{
+      const s=Math.max(b.ss,m0),en=Math.min(b.es+1,m1);if(en<=s)return;
+      h+=bar(b).replace('style="','style="left:'+((s-m0)/(m1-m0)*100)+'%;width:'+((en-s)/(m1-m0)*100)+'%;');
+    });
+    h+='</div></div>';
+  });
+  return h+'</div>';
+}
+function rDetail(){
+  const b=D.Bookings.find(x=>x.id===S.sel),el=$('#detail');
+  if(!b){el.innerHTML='';return}
+  const mine=S.me&&(b.Booked_By||'').toLowerCase()===S.me.toLowerCase();
+  el.innerHTML=`<div><b>${esc(nm(D.byEq[b.Equipment]))}</b>: ${dstr(b.Start_Date)} ${b.Start_Half} to ${dstr(b.End_Date)} ${b.End_Half}, booked by ${esc(b.Booked_By)}${b.Used_Where?', used at '+esc(b.Used_Where):''}${b.bad?' <span class="badtxt">⚠ Overlaps another booking</span>':''}</div>`+
+    (mine?'<button class="dng" id="cx">Cancel booking</button>':'<span class="mute">Only the person who booked can cancel.</span>');
+}
+$('#cal').onclick=e=>{
+  const b=e.target.closest('[data-b]'),d=e.target.closest('[data-d]');
+  if(b){S.sel=+b.dataset.b;rCalendar()}
+  else if(d){$('#f-sd').value=$('#f-ed').value=d.dataset.d;chk()}
+};
+$('#detail').onclick=async e=>{const t=e.target;if(t.id!=='cx')return;
+  if(!t.dataset.s){t.dataset.s=1;t.textContent='Click again to confirm';return}
+  await grist.docApi.applyUserActions([['RemoveRecord','Bookings',S.sel]]);S.sel=null;load()};
+$('#chips').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;const c=+b.dataset.c;S.cats.has(c)?S.cats.delete(c):S.cats.add(c);rBk()};
+$('#m-eq').onchange=e=>{S.mach=e.target.value;rCalendar()};
+$('#prev').onclick=()=>{const d=new Date(Date.UTC(S.y,S.mo-1,1));S.y=d.getUTCFullYear();S.mo=d.getUTCMonth();rCalendar()};
+$('#next').onclick=()=>{const d=new Date(Date.UTC(S.y,S.mo+1,1));S.y=d.getUTCFullYear();S.mo=d.getUTCMonth();rCalendar()};
+$('#today').onclick=()=>{S.y=now.getFullYear();S.mo=now.getMonth();rCalendar()};
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{S.view=b.dataset.v;rCalendar()});
+
+/* ---------- Calibration ---------- */
+function rCal(){
+  const L=D.Equipment.filter(e=>e.Needs_Calibration).map(e=>({e,...cal(e)}));
+  const key=x=>x.k==='never'?-1e9:x.d;L.sort((a,b)=>key(a)-key(b));
+  const P=[['all','All'],['exp','Expired'],['never','Never calibrated'],['soon','Due soon'],['ok','Valid']];
+  $('#pills').innerHTML=P.map(([k,t])=>`<button class="pill ${S.cal===k?'on':''}" data-k="${k}"><b>${k==='all'?L.length:L.filter(x=>x.k===k).length}</b>${t}</button>`).join('');
+  const v=L.filter(x=>S.cal==='all'||x.k===S.cal);
+  if(!v.length){$('#caltable').innerHTML='<div class="empty">Nothing to show for this filter.</div>';return}
+  $('#caltable').innerHTML='<table class="t"><thead><tr><th>Machine</th><th>Category</th><th>Status</th><th>Last calibration</th><th>Valid until</th><th>Time left</th><th>Type</th><th>Lab</th></tr></thead><tbody>'+
+    v.map(x=>`<tr><td>${esc(nm(x.e))}</td><td>${esc(D.byCat[x.e.Category]?.Name)}</td><td>${esc(x.label)}</td><td>${dstr(x.l?.Calibration_Date)}</td><td>${dstr(x.l?.Valid_Until)}</td><td>${x.d==null?'':x.d<0?(-x.d)+' days overdue':x.d+' days'}</td><td>${esc((arr(x.l?.Type)||[]).join?.(', '))}</td><td>${esc(x.l?.Lab)}</td></tr>`).join('')+'</tbody></table>';
+}
+$('#pills').onclick=e=>{const b=e.target.closest('[data-k]');if(b){S.cal=b.dataset.k;rCal()}};
+
+/* ---------- Shell ---------- */
+document.querySelector('nav').onclick=e=>{const b=e.target.closest('[data-t]');if(b){S.tab=b.dataset.t;render();load()}};
+$('#me').value=S.me;
+$('#me').onchange=e=>{S.me=e.target.value.trim();try{localStorage.setItem('me',S.me)}catch(x){}chk();rDetail()};
+grist.ready({requiredAccess:'full'});
+grist.onRecords(()=>load());
+load();
+</script>
+</body></html>
