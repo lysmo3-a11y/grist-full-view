@@ -8,6 +8,7 @@
 /* Colors: edit here to match the institute's charter exactly */
 :root{--navy:#0b2447;--teal:#00a6b2;--tealbg:#e3f5f6;--bg:#f4f6f9;--line:#d9e0ea;--txt:#1b2733;--mute:#6a7a8c;--red:#c62f3a;--orange:#e08a1e;--green:#2e9c63}
 *{box-sizing:border-box}
+button{color:var(--txt)}
 body{margin:0;font:14px/1.4 Figtree,system-ui,sans-serif;color:var(--txt);background:var(--bg)}
 header{background:var(--navy);color:#fff;display:flex;align-items:center;gap:28px;padding:0 16px;height:48px}
 header h1{font-size:15px;font-weight:600;margin:0;white-space:nowrap}
@@ -104,7 +105,6 @@ a{color:var(--teal)}
       <button class="sec" id="today">Today</button>
       <div class="seg"><button class="sec on" data-v="month">Month</button><button class="sec" data-v="line">Timeline</button></div>
       <select id="m-cat" aria-label="Filter by category"></select>
-      <select id="m-eq" aria-label="Filter by machine"></select>
       <select id="m-eq" aria-label="Filter by machine"></select>
     </div>
     <div id="detail"></div>
