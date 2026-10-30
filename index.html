@@ -174,7 +174,8 @@ function rEq(){
   $('#cats').innerHTML=cs.map(c=>`<button class="cat ${c.id===S.cat?'on':''}" data-c="${c.id}">${esc(c.Name)}<small>${D.Equipment.filter(e=>e.Category===c.id).length}</small></button>`).join('');
   const q=S.q.toLowerCase();
   const all=D.Equipment.filter(e=>e.Category===S.cat).sort((a,b)=>(a.NameID||'').localeCompare(b.NameID||''));
-  const list=all.filter(e=>!q||[e.NameID,e.Description,e.Serial_Number,e.Comments].join(' ').toLowerCase().includes(q));
+  const hay=e=>[e.NameID,e.Description,e.Serial_Number,e.Comments,D.bySub[e.Sub_Type]?.Name,D.byLoc[e.Location]?.Name,e.Status].join(' ').toLowerCase();
+  const list=all.filter(e=>!q||hay(e).includes(q));
   $('#eqn').textContent=`${list.length} item${list.length===1?'':'s'}`;
   if(!list.length){$('#eqtable').innerHTML='<div class="empty">No equipment found in this category.</div>';return}
   const cols=COLS.filter(c=>ALWAYS.includes(c)||(c==='Calibration_Status'?all.some(e=>e.Needs_Calibration):all.some(e=>has(e[c]))));
